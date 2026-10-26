@@ -1,0 +1,913 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#173b35">
+  <title>クリニック事務長アプリ</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #f3f6f5;
+      color: #243630;
+    }
+
+    header {
+      background: #173b35;
+      color: white;
+      padding: 26px 20px;
+    }
+
+    header p {
+      font-size: 12px;
+      letter-spacing: 2px;
+      opacity: 0.8;
+    }
+
+    header h1 {
+      margin-bottom: 6px;
+      font-size: 25px;
+    }
+
+    main {
+      max-width: 680px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .card, .task {
+      background: white;
+      padding: 18px;
+      border-radius: 14px;
+      box-shadow: 0 2px 8px #173b3510;
+    }
+
+    .number {
+      font-size: 30px;
+      font-weight: bold;
+      margin: 8px 0;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin: 24px 0 12px;
+    }
+
+    .task {
+      margin-bottom: 10px;
+    }
+
+    .task label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      accent-color: #26765e;
+    }
+
+    .done {
+      color: #788780;
+      text-decoration: line-through;
+    }
+
+    .progress-track {
+      height: 8px;
+      background: #dfe8e3;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    #progress-bar {
+      height: 100%;
+      width: 0;
+      background: #26765e;
+      transition: width 0.2s;
+    }
+
+    .note {
+      color: #68766f;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <p>CLINIC ADMINISTRATION</p>
+    <h1>事務長ダッシュボード</h1>
+    <div>クリニック開業準備・管理システム</div>
+  </header>
+
+  <main>
+    <div class="summary">
+      <div class="card">
+        <div>全タスク</div>
+        <div class="number" id="total">0</div>
+        <div class="note">登録済みのタスク</div>
+      </div>
+      <div class="card">
+        <div>完了率</div>
+        <div class="number" id="rate">0%</div>
+        <div class="note">進捗状況</div>
+      </div>
+      <div class="card">
+        <div>未完了タスク</div>
+        <div class="number" id="unfinished">0</div>
+        <div class="note">これから対応する業務</div>
+      </div>
+
+      <div class="card">
+        <div>期限切れ</div>
+        <div class="number" id="overdue">0</div>
+        <div class="note">期限を過ぎた未完了業務</div>
+      </div>
+
+      <div class="card">
+        <div>期限間近</div>
+        <div class="number" id="due-soon">0</div>
+        <div class="note">期限まで3日以内</div>
+      </div>
+    </div>
+<div class="card" style="margin-bottom:20px;">
+  <h2 style="margin-top:0;">タスクを追加</h2>
+
+
+<form id="task-form">
+  <label for="task-name">業務名</label>
+  <input
+    id="task-name"
+    type="text"
+    placeholder="例：消防設備の確認"
+    maxlength="100"
+    required
+    style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin:8px 0 14px;"
+  >
+
+  <label for="task-deadline">期限</label>
+  <input
+    id="task-deadline"
+    type="date"
+    style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin:8px 0 14px;"
+  >
+
+  <label for="task-category">カテゴリ</label>
+  <select
+    id="task-category"
+    style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin:8px 0 14px;"
+  >
+    <option value="開業手続き">開業手続き</option>
+    <option value="物件・設備">物件・設備</option>
+    <option value="医療機器・システム">医療機器・システム</option>
+    <option value="人事・採用">人事・採用</option>
+    <option value="行政・届出">行政・届出</option>
+    <option value="経理・資金">経理・資金</option>
+    <option value="広報・集患">広報・集患</option>
+    <option value="その他">その他</option>
+  </select>
+
+  <label for="task-priority">優先度</label>
+  <select
+    id="task-priority"
+    style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin:8px 0 14px;"
+  >
+    <option value="高">高</option>
+    <option value="中" selected>中</option>
+    <option value="低">低</option>
+  </select>
+
+  <label for="task-assignee">担当者</label>
+  <input
+    id="task-assignee"
+    type="text"
+    placeholder="例：事務長"
+    maxlength="50"
+    style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin:8px 0 14px;"
+  >
+
+  <button
+    type="submit"
+    style="width:100%;padding:12px;background:#173b35;color:white;border:0;border-radius:8px;cursor:pointer;"
+  >
+    ＋ タスクを追加する
+  </button>
+</form>
+
+<div id="edit-area" class="card" style="display:none;margin-bottom:20px;">
+  <h2 style="margin-top:0;">タスクを編集</h2>
+
+  <form id="edit-form">
+    <label for="edit-name">業務名</label>
+    <input id="edit-name" type="text" maxlength="100" required
+      style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin:8px 0 14px;">
+
+    <label for="edit-deadline">期限</label>
+    <input id="edit-deadline" type="date"
+      style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin:8px 0 14px;">
+
+    <label for="edit-category">カテゴリ</label>
+    <select id="edit-category"
+      style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin:8px 0 14px;">
+      <option value="開業手続き">開業手続き</option>
+      <option value="物件・設備">物件・設備</option>
+      <option value="医療機器・システム">医療機器・システム</option>
+      <option value="人事・採用">人事・採用</option>
+      <option value="行政・届出">行政・届出</option>
+      <option value="経理・資金">経理・資金</option>
+      <option value="広報・集患">広報・集患</option>
+      <option value="その他">その他</option>
+    </select>
+
+    <label for="edit-priority">優先度</label>
+    <select id="edit-priority"
+      style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin:8px 0 14px;">
+      <option value="高">高</option>
+      <option value="中">中</option>
+      <option value="低">低</option>
+    </select>
+
+    <label for="edit-assignee">担当者</label>
+    <input id="edit-assignee" type="text" maxlength="50"
+      style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin:8px 0 14px;">
+
+    <button type="submit"
+      style="width:100%;padding:12px;background:#173b35;color:white;border:0;border-radius:8px;cursor:pointer;">
+      変更を保存
+    </button>
+
+    <button type="button" id="cancel-edit"
+      style="width:100%;padding:12px;margin-top:8px;background:white;border:1px solid #ccc;border-radius:8px;cursor:pointer;">
+      キャンセル
+    </button>
+  </form>
+</div>
+
+
+</div>
+
+<div class="card" style="margin-bottom:16px;">
+  <label for="category-filter" style="display:block;margin-bottom:8px;font-weight:bold;">
+    カテゴリで絞り込む
+  </label>
+
+  <select id="category-filter"
+    style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;">
+    <option value="all">すべてのカテゴリ</option>
+    <option value="開業手続き">開業手続き</option>
+    <option value="物件・設備">物件・設備</option>
+    <option value="医療機器・システム">医療機器・システム</option>
+    <option value="人事・採用">人事・採用</option>
+    <option value="行政・届出">行政・届出</option>
+    <option value="経理・資金">経理・資金</option>
+    <option value="広報・集患">広報・集患</option>
+    <option value="その他">その他</option>
+  </select>
+</div>
+
+<div class="card" style="margin-bottom:16px;">
+  <label for="task-sort" style="display:block;margin-bottom:8px;font-weight:bold;">
+    タスクの並べ替え
+  </label>
+
+  <select id="task-sort"
+    style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;">
+    <option value="default">登録順</option>
+    <option value="priority">優先度が高い順</option>
+    <option value="deadline">期限が近い順</option>
+    <option value="unfinished">未完了を先に</option>
+  </select>
+</div>
+<h2>カテゴリ別タスク進捗</h2>
+<div id="category-chart" class="card"
+     style="margin-bottom:20px;">
+  グラフを読み込み中...
+</div>
+<div id="category-summary" class="card"
+     style="margin-bottom:20px;">
+  集計中...
+</div>
+
+<div class="card" style="margin-bottom:20px;">
+  <h2 style="margin-top:0;">データのバックアップ</h2>
+
+  <p>
+    登録したタスクをファイルに保存したり、
+    保存済みのファイルから復元したりできます。
+  </p>
+
+  <button type="button" id="export-tasks">
+    バックアップを保存
+  </button>
+
+  <button type="button" id="import-tasks">
+    バックアップを読み込む
+  </button>
+
+  <input
+    type="file"
+    id="import-file"
+    accept=".json,application/json"
+    style="display:none;"
+  >
+</div>
+
+    <h2>開業準備チェックリスト</h2>
+    <div class="progress-track">
+      <div id="progress-bar"></div>
+    </div>
+    <p id="progress-text" class="note">0 / 0 件完了</p>
+
+    <div id="task-list"></div>
+
+    <p class="note">
+      ※ 試作品です。現在のチェック状態はこのページを
+      開いている間だけ保持されます。
+    </p>
+  </main>
+
+  <script>
+   const defaultTasks = [
+  { name: "開業スケジュールの作成", done: false },
+  { name: "開業資金・予算の確認", done: false },
+  { name: "物件・内装の準備状況確認", done: false },
+  { name: "医療機器・備品の選定", done: false },
+  { name: "電子カルテ・予約システムの選定", done: false },
+  { name: "職員の採用計画", done: false },
+  { name: "行政手続きの進捗確認", done: false },
+  { name: "業務マニュアルの整備", done: false }
+];
+
+let tasks;
+
+try {
+  const saved = localStorage.getItem("clinicAdminTasks");
+  tasks = saved ? JSON.parse(saved) : defaultTasks;
+} catch {
+  tasks = defaultTasks.map(task => ({ ...task }));
+}
+
+    const taskList = document.getElementById("task-list");
+    const sortSelect = document.getElementById("task-sort");
+
+// 最初に登録した順番を記録する
+tasks.forEach((task, index) => {
+  if (task.order === undefined) {
+    task.order = index;
+  }
+});
+
+function getSortedTasks() {
+  const sorted = [...tasks];
+  const mode = sortSelect.value;
+
+  if (mode === "priority") {
+    const rank = { "高": 0, "中": 1, "低": 2 };
+
+    sorted.sort((a, b) =>
+      (rank[a.priority || "中"] ?? 1) -
+      (rank[b.priority || "中"] ?? 1)
+    );
+  } else if (mode === "deadline") {
+    sorted.sort((a, b) => {
+      if (!a.deadline) return 1;
+      if (!b.deadline) return -1;
+      return a.deadline.localeCompare(b.deadline);
+    });
+  } else if (mode === "unfinished") {
+    sorted.sort((a, b) => Number(a.done) - Number(b.done));
+  } else {
+    sorted.sort((a, b) => a.order - b.order);
+  }
+
+  return sorted;
+}
+
+sortSelect.addEventListener("change", renderTasks);
+document.getElementById("category-filter")
+  .addEventListener("change", renderTasks);
+
+    function saveTasks() {
+  localStorage.setItem("clinicAdminTasks", JSON.stringify(tasks));
+}
+
+
+function saveTasks() {
+  localStorage.setItem("clinicAdminTasks", JSON.stringify(tasks));
+}
+function renderCategoryChart() {
+  const categories = [
+    "開業手続き",
+    "物件・設備",
+    "医療機器・システム",
+    "人事・採用",
+    "行政・届出",
+    "経理・資金",
+    "広報・集患",
+    "その他"
+  ];
+
+  const chart = document.getElementById("category-chart");
+  chart.innerHTML = "";
+
+  categories.forEach(category => {
+    const categoryTasks = tasks.filter(task =>
+      (task.category || "その他") === category
+    );
+
+    const total = categoryTasks.length;
+    const completed = categoryTasks.filter(task => task.done).length;
+    const rate = total === 0
+      ? 0
+      : Math.round(completed / total * 100);
+
+    const section = document.createElement("div");
+    section.style.marginBottom = "16px";
+
+    const heading = document.createElement("div");
+    heading.style.display = "flex";
+    heading.style.justifyContent = "space-between";
+    heading.style.gap = "8px";
+    heading.style.marginBottom = "6px";
+
+    const name = document.createElement("span");
+    name.textContent = category;
+
+    const percentage = document.createElement("strong");
+    percentage.textContent = rate + "%";
+
+    heading.append(name, percentage);
+
+    const track = document.createElement("div");
+    track.style.height = "10px";
+    track.style.background = "#dfe8e3";
+    track.style.borderRadius = "10px";
+    track.style.overflow = "hidden";
+
+    const bar = document.createElement("div");
+    bar.style.height = "100%";
+    bar.style.width = rate + "%";
+    bar.style.background = "#26765e";
+    bar.style.borderRadius = "10px";
+    bar.style.transition = "width 0.3s";
+
+    track.append(bar);
+
+    const detail = document.createElement("div");
+    detail.className = "note";
+    detail.style.marginTop = "4px";
+    detail.textContent = `${completed} / ${total} 件完了`;
+
+    section.append(heading, track, detail);
+    chart.append(section);
+  });
+}
+function renderCategorySummary() {
+  const categories = [
+    "開業手続き",
+    "物件・設備",
+    "医療機器・システム",
+    "人事・採用",
+    "行政・届出",
+    "経理・資金",
+    "広報・集患",
+    "その他"
+  ];
+
+  const summary = document.getElementById("category-summary");
+  summary.innerHTML = "";
+
+  // 表の見出し
+  const header = document.createElement("div");
+  header.style.display = "grid";
+header.style.gridTemplateColumns = "1fr 50px 55px 55px";
+  header.style.fontWeight = "bold";
+  header.style.padding = "8px 0";
+  header.style.borderBottom = "2px solid #ddd";
+
+["カテゴリ", "全件数", "未完了", "完了率"].forEach(text => {
+    const cell = document.createElement("div");
+    cell.textContent = text;
+    header.append(cell);
+  });
+
+  summary.append(header);
+
+  categories.forEach(category => {
+    const categoryTasks = tasks.filter(task =>
+      (task.category || "その他") === category
+    );
+
+    const total = categoryTasks.length;
+    const unfinished = categoryTasks.filter(task => !task.done).length;
+    const completed = total - unfinished;
+const rate = total === 0
+  ? 0
+  : Math.round(completed / total * 100);
+
+    const row = document.createElement("div");
+    row.style.display = "grid";
+row.style.gridTemplateColumns = "1fr 50px 55px 55px";
+    row.style.padding = "10px 0";
+    row.style.borderBottom = "1px solid #eee";
+    row.style.alignItems = "center";
+
+    const name = document.createElement("span");
+    name.textContent = category;
+
+    const totalCell = document.createElement("span");
+    totalCell.textContent = total + "件";
+    totalCell.style.textAlign = "center";
+
+    const unfinishedCell = document.createElement("strong");
+    unfinishedCell.textContent = unfinished + "件";
+    unfinishedCell.style.textAlign = "center";
+
+    if (unfinished > 0) {
+      unfinishedCell.style.color = "#c62828";
+    }
+const rateCell = document.createElement("span");
+rateCell.textContent = rate + "%";
+rateCell.style.textAlign = "center";
+row.append(name, totalCell, unfinishedCell, rateCell);
+    summary.append(row);
+  });
+}
+function renderTasks() {
+  taskList.innerHTML = "";
+  renderCategorySummary();
+  renderCategoryChart();
+
+const categoryFilter =
+  document.getElementById("category-filter").value;
+
+getSortedTasks()
+  .filter(task =>
+    categoryFilter === "all" ||
+    (task.category || "その他") === categoryFilter
+  )
+  .forEach(task => {
+    const card = document.createElement("div");
+    card.className = "task";
+
+    const row = document.createElement("div");
+    row.style.display = "flex";
+    row.style.alignItems = "center";
+    row.style.justifyContent = "space-between";
+    row.style.gap = "10px";
+
+    const label = document.createElement("label");
+    label.style.flex = "1";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = task.done;
+
+    checkbox.addEventListener("change", () => {
+      task.done = checkbox.checked;
+      saveTasks();
+      renderTasks();
+    });
+
+    const text = document.createElement("span");
+    text.textContent = task.name;
+
+    if (task.done) {
+      text.className = "done";
+    }
+
+    label.append(checkbox, text);
+
+    const editButton = document.createElement("button");
+editButton.textContent = "編集";
+editButton.style.padding = "8px 12px";
+editButton.style.border = "1px solid #ccc";
+editButton.style.borderRadius = "8px";
+editButton.style.background = "#f3f6f5";
+editButton.style.cursor = "pointer";
+
+editButton.addEventListener("click", () => {
+  document.getElementById("edit-name").value = task.name;
+  document.getElementById("edit-deadline").value =
+    task.deadline || "";
+    document.getElementById("edit-category").value =
+    task.category || "開業手続き";
+  document.getElementById("edit-priority").value =
+    task.priority || "中";
+  document.getElementById("edit-assignee").value =
+    task.assignee || "";
+
+editingIndex = tasks.indexOf(task);
+  document.getElementById("edit-area").style.display = "block";
+  document.getElementById("edit-area").scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  });
+});
+    const deleteButton = document.createElement("button");
+    deleteButton.textContent = "削除";
+    deleteButton.style.padding = "8px 12px";
+    deleteButton.style.border = "1px solid #ddd";
+    deleteButton.style.borderRadius = "8px";
+    deleteButton.style.background = "#fff";
+    deleteButton.style.cursor = "pointer";
+
+    deleteButton.addEventListener("click", () => {
+      if (!confirm(`「${task.name}」を削除しますか？`)) {
+        return;
+      }
+
+const taskIndex = tasks.indexOf(task);
+
+if (taskIndex !== -1) {
+  tasks.splice(taskIndex, 1);
+}      saveTasks();
+      renderTasks();
+    });
+
+    row.append(label, editButton, deleteButton);
+    card.append(row);
+
+    const details = document.createElement("div");
+    details.className = "note";
+    details.style.marginTop = "10px";
+
+   
+const deadlineText = task.deadline || "未設定";
+const categoryText = task.category || "未分類";
+const priorityText = task.priority || "中";
+const assigneeText = task.assignee || "未設定";
+
+let deadlineStatus = "";
+
+if (task.deadline && !task.done) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const deadline = new Date(task.deadline + "T00:00:00");
+  const diffDays = Math.round(
+    (deadline - today) / (1000 * 60 * 60 * 24)
+  );
+
+  if (diffDays < 0) {
+    deadlineStatus = "【期限切れ】";
+  } else if (diffDays <= 3) {
+    deadlineStatus = "【期限間近】";
+  }
+}
+
+
+details.textContent =
+  `カテゴリ：${categoryText} ｜ ${deadlineStatus} 期限：${deadlineText} ｜ 優先度：${priorityText} ｜ 担当者：${assigneeText}`;
+if (deadlineStatus === "【期限切れ】") {
+  details.style.color = "#c62828";
+  details.style.fontWeight = "bold";
+} else if (deadlineStatus === "【期限間近】") {
+  details.style.color = "#b26a00";
+  details.style.fontWeight = "bold";
+}
+
+    card.append(details);
+    taskList.append(card);
+  });
+
+  const total = tasks.length;
+  const completed = tasks.filter(task => task.done).length;
+  const rate = total === 0
+    ? 0
+    : Math.round(completed / total * 100);
+
+  document.getElementById("total").textContent = total;
+  document.getElementById("rate").textContent = rate + "%";
+  document.getElementById("progress-bar").style.width = rate + "%";
+  document.getElementById("progress-text").textContent =
+    `${completed} / ${total} 件完了`;
+      // 未完了タスク数
+  const unfinished = tasks.filter(task => !task.done).length;
+
+  // 今日の日付（時刻を除いて判定）
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // 期限切れタスク数
+  const overdue = tasks.filter(task => {
+    if (task.done || !task.deadline) return false;
+
+    const deadline = new Date(task.deadline + "T00:00:00");
+    return deadline < today;
+  }).length;
+
+  // 期限間近タスク数（今日から3日以内。期限切れは除外）
+  const dueSoon = tasks.filter(task => {
+    if (task.done || !task.deadline) return false;
+
+    const deadline = new Date(task.deadline + "T00:00:00");
+    const diffDays = Math.round(
+      (deadline - today) / (1000 * 60 * 60 * 24)
+    );
+
+    return diffDays >= 0 && diffDays <= 3;
+  }).length;
+
+  document.getElementById("unfinished").textContent = unfinished;
+  document.getElementById("overdue").textContent = overdue;
+  document.getElementById("due-soon").textContent = dueSoon;
+}
+
+document.getElementById("task-form").addEventListener(
+  "submit",
+  event => {
+    event.preventDefault();
+
+    const name = document
+      .getElementById("task-name")
+      .value.trim();
+
+    if (!name) return;
+
+    const deadline =
+      document.getElementById("task-deadline").value;
+
+    const category =
+      document.getElementById("task-category").value;
+
+    const priority =
+      document.getElementById("task-priority").value;
+
+    const assignee =
+      document.getElementById("task-assignee").value.trim();
+
+    const order = tasks.length === 0
+      ? 0
+      : Math.max(...tasks.map(task => task.order ?? -1)) + 1;
+
+    tasks.push({
+      name: name,
+      done: false,
+      deadline: deadline,
+      category: category,
+      priority: priority,
+      assignee: assignee,
+      order: order
+    });
+
+    saveTasks();
+    renderTasks();
+
+    document.getElementById("task-form").reset();
+  }
+);
+
+document.getElementById("export-tasks").addEventListener("click", () => {
+  const data = JSON.stringify(tasks, null, 2);
+
+  const blob = new Blob([data], {
+    type: "application/json"
+  });
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download =
+    `clinic-tasks-backup-${new Date().toISOString().slice(0, 10)}.json`;
+
+  link.click();
+
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+  }, 1000);
+});
+
+document.getElementById("import-tasks").addEventListener("click", () => {
+  document.getElementById("import-file").click();
+});
+
+document.getElementById("import-file").addEventListener("change", (event) => {
+  const file = event.target.files[0];
+
+  if (!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = () => {
+    try {
+      const importedTasks = JSON.parse(reader.result);
+
+      if (
+        !Array.isArray(importedTasks) ||
+        !importedTasks.every(
+          task =>
+            task &&
+            typeof task.name === "string" &&
+            typeof task.done === "boolean"
+        )
+      ) {
+        alert("バックアップファイルの形式が正しくありません。");
+        return;
+      }
+
+      const confirmed = confirm(
+        "現在のタスクをバックアップの内容に置き換えます。よろしいですか？"
+      );
+
+      if (!confirmed) return;
+
+      tasks = importedTasks.map((task, index) => ({
+        name: task.name,
+        done: task.done,
+        deadline:
+          typeof task.deadline === "string" ? task.deadline : "",
+        category:
+          typeof task.category === "string" ? task.category : "その他",
+        priority:
+          ["高", "中", "低"].includes(task.priority) ? task.priority : "中",
+        assignee:
+          typeof task.assignee === "string" ? task.assignee : "",
+        order:
+          Number.isFinite(task.order) ? task.order : index
+      }));
+
+      saveTasks();
+      renderTasks();
+
+      alert("バックアップを読み込みました。");
+    } catch {
+      alert(
+        "ファイルを読み込めませんでした。正しいバックアップファイルを選んでください。"
+      );
+    } finally {
+      event.target.value = "";
+    }
+  };
+
+  reader.readAsText(file);
+});
+
+let editingIndex = null;
+
+document.getElementById("edit-form").addEventListener(
+  "submit",
+  event => {
+    event.preventDefault();
+
+    if (
+      editingIndex === null ||
+      !tasks[editingIndex]
+    ) {
+      return;
+    }
+
+    const name = document
+      .getElementById("edit-name")
+      .value.trim();
+
+    if (!name) return;
+
+    tasks[editingIndex].name = name;
+    tasks[editingIndex].deadline =
+      document.getElementById("edit-deadline").value;
+      tasks[editingIndex].category =
+  document.getElementById("edit-category").value;
+    tasks[editingIndex].priority =
+      document.getElementById("edit-priority").value;
+    tasks[editingIndex].assignee =
+      document.getElementById("edit-assignee").value.trim();
+
+    saveTasks();
+    renderTasks();
+
+    editingIndex = null;
+    document.getElementById("edit-area").style.display = "none";
+  }
+);
+
+document.getElementById("cancel-edit").addEventListener(
+  "click",
+  () => {
+    editingIndex = null;
+    document.getElementById("edit-area").style.display = "none";
+  }
+);
+
+
+    renderTasks();
+  </script>
+</body>
+</html>
