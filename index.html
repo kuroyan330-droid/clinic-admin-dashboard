@@ -40,6 +40,40 @@
       margin: auto;
       padding: 20px;
     }
+    
+    .jump-menu {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      display: flex;
+      gap: 8px;
+      padding: 10px 12px;
+      background: #ffffff;
+      border-bottom: 1px solid #dce5e0;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .jump-menu a {
+      flex-shrink: 0;
+      padding: 9px 12px;
+      border-radius: 8px;
+      background: #eaf2ee;
+      color: #173b35;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .jump-menu a:hover {
+      background: #d5e7dd;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 65px;
+    }
+
 
     .summary {
       display: grid;
@@ -107,6 +141,64 @@
       font-size: 13px;
       line-height: 1.7;
     }
+    
+/* スマートフォン向けレイアウト */
+@media (max-width: 480px) {
+  header {
+    padding: 20px 16px;
+  }
+
+  header h1 {
+    font-size: 22px;
+  }
+
+  main {
+    padding: 14px;
+  }
+
+  .summary {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .card,
+  .task {
+    padding: 14px;
+  }
+
+  .number {
+    font-size: 25px;
+  }
+
+  h2 {
+    font-size: 17px;
+  }
+
+  .jump-menu {
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .jump-menu a {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  #category-summary {
+    overflow-x: auto;
+  }
+
+  #category-chart {
+    overflow-wrap: anywhere;
+  }
+
+  button,
+  input,
+  select {
+    max-width: 100%;
+  }
+}
+
   </style>
 </head>
 <body>
@@ -117,8 +209,80 @@
   </header>
 
   <main>
-    <div class="summary">
-      <div class="card">
+    
+  <nav class="jump-menu" aria-label="ページ内メニュー">
+    <a href="#summary-area">進捗概要</a>
+    <a href="#task-form">タスク追加</a>
+    <a href="#category-chart">進捗グラフ</a>
+    <a href="#category-summary">カテゴリ集計</a>
+    <a href="#task-list">タスク一覧</a>
+  </nav>
+
+<div class="card" style="margin-bottom:20px;">
+  <h2 style="margin-top:0;">開業予定日</h2>
+
+  <label for="opening-date">クリニックの開業予定日</label>
+
+  <input
+    id="opening-date"
+    type="date"
+    style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;margin:8px 0 12px;"
+  >
+
+  <button
+    type="button"
+    id="save-opening-date"
+    style="width:100%;padding:12px;background:#173b35;color:white;border:0;border-radius:8px;cursor:pointer;"
+  >
+    開業予定日を保存
+  </button>
+
+  <p id="opening-date-message" class="note">
+    開業予定日はまだ設定されていません。
+  </p>
+  <p id="opening-countdown" class="number">開業予定日を設定してください</p>
+</div>
+
+<div class="card" id="milestone-area" style="margin-bottom:20px;">
+  <h2 style="margin-top:0;">開業準備マイルストーン</h2>
+
+  <p class="note">
+    開業に向けた主要な準備項目を確認します。
+    各項目の進捗を管理し、開業準備の全体像を把握しましょう。
+  </p>
+
+  <div id="milestone-list">
+    読み込み中...
+  </div>
+</div>
+
+<!-- タスク管理ページへのリンク -->
+<div class="card" style="margin-bottom:20px;">
+  <h2 style="margin-top:0;">開業準備タスク管理</h2>
+  <p class="note">
+    開業準備の業務を登録し、期限・優先度・担当者・進捗を管理します。
+  </p>
+  <a href="pages/tasks.html"
+     style="display:inline-block;padding:12px 18px;background:#173b35;color:white;text-decoration:none;border-radius:8px;">
+    タスク管理を開く →
+  </a>
+</div>
+
+    <div class="summary" id="summary-area">
+      
+<!-- 日次業務記録へのリンク -->
+<div class="card" style="margin-bottom:20px;">
+  <h2 style="margin-top:0;">事務長の日次業務記録</h2>
+  <p class="note">
+    毎日の業務内容、対応結果、未完了事項、翌日の予定を記録します。
+  </p>
+  <a href="pages/daily-record.html"
+     style="display:inline-block;padding:12px 18px;background:#173b35;color:white;text-decoration:none;border-radius:8px;">
+    日次業務記録を開く →
+  </a>
+</div>
+
+            <div class="card">
         <div>全タスク</div>
         <div class="number" id="total">0</div>
         <div class="note">登録済みのタスク</div>
@@ -282,6 +446,20 @@
 </div>
 
 <div class="card" style="margin-bottom:16px;">
+  <label for="status-filter" style="display:block;margin-bottom:8px;font-weight:bold;">
+    完了状況で絞り込む
+  </label>
+
+  <select id="status-filter"
+    style="width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;">
+    <option value="all">すべて表示</option>
+    <option value="unfinished">未完了のみ</option>
+    <option value="done">完了済みのみ</option>
+  </select>
+</div>
+
+
+<div class="card" style="margin-bottom:16px;">
   <label for="task-sort" style="display:block;margin-bottom:8px;font-weight:bold;">
     タスクの並べ替え
   </label>
@@ -411,6 +589,11 @@ document.getElementById("category-filter")
 function saveTasks() {
   localStorage.setItem("clinicAdminTasks", JSON.stringify(tasks));
 }
+document.getElementById("category-filter")
+  .addEventListener("change", renderTasks);
+
+document.getElementById("status-filter")
+  .addEventListener("change", renderTasks);
 function renderCategoryChart() {
   const categories = [
     "開業手続き",
@@ -554,15 +737,28 @@ function renderTasks() {
   renderCategorySummary();
   renderCategoryChart();
 
+
 const categoryFilter =
   document.getElementById("category-filter").value;
 
+const statusFilter =
+  document.getElementById("status-filter").value;
+
 getSortedTasks()
-  .filter(task =>
-    categoryFilter === "all" ||
-    (task.category || "その他") === categoryFilter
-  )
+  .filter(task => {
+    const categoryMatches =
+      categoryFilter === "all" ||
+      (task.category || "その他") === categoryFilter;
+
+    const statusMatches =
+      statusFilter === "all" ||
+      (statusFilter === "unfinished" && !task.done) ||
+      (statusFilter === "done" && task.done);
+
+    return categoryMatches && statusMatches;
+  })
   .forEach(task => {
+
     const card = document.createElement("div");
     card.className = "task";
 
@@ -729,6 +925,64 @@ if (deadlineStatus === "【期限切れ】") {
   document.getElementById("overdue").textContent = overdue;
   document.getElementById("due-soon").textContent = dueSoon;
 }
+
+const openingDateInput = document.getElementById("opening-date");
+const openingDateMessage = document.getElementById("opening-date-message");
+
+
+const savedOpeningDate = localStorage.getItem("clinicOpeningDate");
+
+function updateOpeningCountdown(date) {
+  const countdown = document.getElementById("opening-countdown");
+
+  if (!date) {
+    countdown.textContent = "開業予定日を設定してください";
+    return;
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const openingDay = new Date(date + "T00:00:00");
+
+  const diffDays = Math.round(
+    (openingDay - today) / (1000 * 60 * 60 * 24)
+  );
+
+  if (diffDays > 0) {
+    countdown.textContent = `開業まであと ${diffDays} 日`;
+  } else if (diffDays === 0) {
+    countdown.textContent = "本日が開業予定日です";
+  } else {
+    countdown.textContent =
+      `開業予定日から ${Math.abs(diffDays)} 日経過`;
+  }
+}
+
+if (savedOpeningDate) {
+  openingDateInput.value = savedOpeningDate;
+  openingDateMessage.textContent =
+    `保存済みの開業予定日：${savedOpeningDate}`;
+}
+
+updateOpeningCountdown(savedOpeningDate);
+
+
+document.getElementById("save-opening-date").addEventListener("click", () => {
+  const date = openingDateInput.value;
+
+  if (!date) {
+    alert("開業予定日を入力してください。");
+    return;
+  }
+
+  localStorage.setItem("clinicOpeningDate", date);
+updateOpeningCountdown(date);
+  openingDateMessage.textContent =
+    `保存済みの開業予定日：${date}`;
+
+  alert("開業予定日を保存しました。");
+});
 
 document.getElementById("task-form").addEventListener(
   "submit",
@@ -906,8 +1160,199 @@ document.getElementById("cancel-edit").addEventListener(
   }
 );
 
+// 開業準備マイルストーンの仮表示
+const milestoneList = document.getElementById("milestone-list");
+
+if (milestoneList) {
+  const milestones = [
+    "開業スケジュールの策定",
+    "物件・内装の準備",
+    "医療機器・備品の選定",
+    "電子カルテ・予約システムの導入",
+    "職員の採用・研修",
+    "行政への届出",
+    "業務マニュアルの整備",
+    "開業前の運用テスト"
+  ];
+
+  milestoneList.innerHTML = "";
+
+  milestones.forEach((name, index) => {
+    const label = document.createElement("label");
+    label.style.display = "flex";
+    label.style.alignItems = "center";
+    label.style.gap = "10px";
+    label.style.padding = "12px 0";
+    label.style.borderBottom = "1px solid #eee";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked =
+      localStorage.getItem("clinicMilestone" + index) === "true";
+
+    checkbox.addEventListener("change", () => {
+      localStorage.setItem(
+        "clinicMilestone" + index,
+        checkbox.checked
+      );
+
+      nameText.style.textDecoration =
+        checkbox.checked ? "line-through" : "none";
+
+      updateMilestoneProgress();
+    });
+
+    const nameText = document.createElement("span");
+    nameText.textContent = name;
+    nameText.style.flex = "1";
+    nameText.style.textDecoration =
+      checkbox.checked ? "line-through" : "none";
+
+    label.append(checkbox, nameText);
+    milestoneList.append(label);
+  });
+
+  const progress = document.createElement("p");
+  progress.className = "note";
+  progress.id = "milestone-progress";
+  milestoneList.append(progress);
+
+  function updateMilestoneProgress() {
+    const checkboxes = milestoneList.querySelectorAll(
+      'input[type="checkbox"]'
+    );
+
+    const completed = [...checkboxes].filter(
+      checkbox => checkbox.checked
+    ).length;
+
+    progress.textContent =
+      `${completed} / ${milestones.length} 項目完了`;
+  }
+
+  updateMilestoneProgress();
+}
 
     renderTasks();
+    renderTasks();
+    
+const dailyRecordForm = document.getElementById("daily-record-form");
+const dailyRecordList = document.getElementById("daily-record-list");
+
+let dailyRecords = [];
+
+try {
+  const savedRecords = localStorage.getItem("clinicDailyRecords");
+  dailyRecords = savedRecords ? JSON.parse(savedRecords) : [];
+
+  if (!Array.isArray(dailyRecords)) {
+    dailyRecords = [];
+  }
+} catch {
+  dailyRecords = [];
+}
+
+function renderDailyRecords() {
+  dailyRecordList.innerHTML = "";
+
+  if (dailyRecords.length === 0) {
+    dailyRecordList.textContent = "記録はまだありません。";
+    return;
+  }
+
+  [...dailyRecords]
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .forEach(record => {
+      const card = document.createElement("div");
+      card.className = "task";
+
+      const heading = document.createElement("h3");
+      heading.textContent = record.date;
+      card.append(heading);
+
+      const fields = [
+        ["実施した業務", record.work],
+        ["対応内容・結果", record.result],
+        ["未完了の業務・課題", record.pending],
+        ["翌日の予定", record.next],
+        ["特記事項・医師への報告事項", record.report]
+      ];
+
+      fields.forEach(([label, value]) => {
+        if (!value) return;
+
+        const paragraph = document.createElement("p");
+        paragraph.style.whiteSpace = "pre-wrap";
+
+        const title = document.createElement("strong");
+        title.textContent = label + "：";
+
+        paragraph.append(title, document.createTextNode(" " + value));
+        card.append(paragraph);
+      });
+
+      const deleteButton = document.createElement("button");
+      deleteButton.type = "button";
+      deleteButton.textContent = "この記録を削除";
+      deleteButton.addEventListener("click", () => {
+        if (!confirm("この日次記録を削除しますか？")) return;
+
+        dailyRecords = dailyRecords.filter(
+          item => item.id !== record.id
+        );
+
+        localStorage.setItem(
+          "clinicDailyRecords",
+          JSON.stringify(dailyRecords)
+        );
+
+        renderDailyRecords();
+      });
+
+      card.append(deleteButton);
+      dailyRecordList.append(card);
+    });
+}
+
+dailyRecordForm.addEventListener("submit", event => {
+  event.preventDefault();
+
+  const record = {
+    id: Date.now().toString() + Math.random().toString(36).slice(2),
+    date: document.getElementById("record-date").value,
+    work: document.getElementById("record-work").value.trim(),
+    result: document.getElementById("record-result").value.trim(),
+    pending: document.getElementById("record-pending").value.trim(),
+    next: document.getElementById("record-next").value.trim(),
+    report: document.getElementById("record-report").value.trim()
+  };
+
+  if (!record.date || !record.work) {
+    alert("日付と実施した業務を入力してください。");
+    return;
+  }
+
+  dailyRecords.push(record);
+
+  localStorage.setItem(
+    "clinicDailyRecords",
+    JSON.stringify(dailyRecords)
+  );
+
+  renderDailyRecords();
+
+  dailyRecordForm.reset();
+  document.getElementById("record-date").value =
+    new Date().toLocaleDateString("sv-SE");
+
+  alert("日次記録を保存しました。");
+});
+
+document.getElementById("record-date").value =
+  new Date().toLocaleDateString("sv-SE");
+
+renderDailyRecords();
+
   </script>
 </body>
 </html>

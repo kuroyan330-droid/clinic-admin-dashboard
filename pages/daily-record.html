@@ -1,0 +1,227 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>事務長の日次業務記録</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 850px;
+      margin: 0 auto;
+      padding: 24px;
+      background: #f5f7f6;
+      color: #24332f;
+    }
+    .card {
+      background: white;
+      padding: 24px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px #0000000d;
+    }
+    label {
+      display: block;
+      margin-top: 16px;
+      font-weight: bold;
+    }
+    input, textarea {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 12px;
+      margin-top: 8px;
+      border: 1px solid #ccd5d1;
+      border-radius: 8px;
+      font: inherit;
+    }
+    button, .back-link {
+      display: inline-block;
+      padding: 12px 18px;
+      margin-top: 18px;
+      border: none;
+      border-radius: 8px;
+      background: #173b35;
+      color: white;
+      cursor: pointer;
+      text-decoration: none;
+      font: inherit;
+    }
+    .record {
+      border-bottom: 1px solid #e1e7e4;
+      padding: 16px 0;
+      overflow-wrap: anywhere;
+    }
+    .record p {
+      white-space: pre-wrap;
+    }
+    .delete-button {
+      background: #8b3535;
+    }
+    .note {
+      color: #64716c;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+  </style>
+</head>
+<body>
+  <h1>事務長の日次業務記録</h1>
+  <p class="note">毎日の業務、対応結果、未完了事項、翌日の予定を記録します。</p>
+
+  <a class="back-link" href="../index.html">← メイン画面へ戻る</a>
+
+  <section class="card">
+    <h2>新しい記録</h2>
+    <form id="daily-record-form">
+      <label for="record-date">日付 *</label>
+      <input id="record-date" type="date" required>
+
+      <label for="record-work">実施した業務 *</label>
+      <textarea id="record-work" rows="3" required
+        placeholder="例：電子カルテ業者と導入日程を確認"></textarea>
+
+      <label for="record-result">対応内容・結果</label>
+      <textarea id="record-result" rows="3"
+        placeholder="例：導入日程の候補を3日確認"></textarea>
+
+      <label for="record-pending">未完了の業務・課題</label>
+      <textarea id="record-pending" rows="3"
+        placeholder="例：業者からの見積書待ち"></textarea>
+
+      <label for="record-next">翌日の予定</label>
+      <textarea id="record-next" rows="3"
+        placeholder="例：見積書を確認し、医師に報告"></textarea>
+
+      <label for="record-report">特記事項・医師への報告事項</label>
+      <textarea id="record-report" rows="3"
+        placeholder="必要な報告事項を記録"></textarea>
+
+      <button type="submit">日次記録を保存</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>過去の日次記録</h2>
+    <div id="daily-record-list">読み込み中...</div>
+  </section>
+
+  <script>
+    const form = document.getElementById("daily-record-form");
+    const list = document.getElementById("daily-record-list");
+    const storageKey = "clinicDailyRecords";
+
+    let records = [];
+
+    try {
+      const saved = localStorage.getItem(storageKey);
+      records = saved ? JSON.parse(saved) : [];
+      if (!Array.isArray(records)) records = [];
+    } catch {
+      records = [];
+    }
+
+    function saveRecords() {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(records));
+        return true;
+      } catch {
+        alert("保存できませんでした。ブラウザの保存設定を確認してください。");
+        return false;
+      }
+    }
+
+    function renderRecords() {
+      list.replaceChildren();
+
+      if (records.length === 0) {
+        list.textContent = "記録はまだありません。";
+        return;
+      }
+
+      [...records]
+        .sort((a, b) => b.date.localeCompare(a.date))
+        .forEach(record => {
+          const article = document.createElement("article");
+          article.className = "record";
+
+          const heading = document.createElement("h3");
+          heading.textContent = record.date;
+          article.append(heading);
+
+          const fields = [
+            ["実施した業務", record.work],
+            ["対応内容・結果", record.result],
+            ["未完了の業務・課題", record.pending],
+            ["翌日の予定", record.next],
+            ["特記事項・医師への報告事項", record.report]
+          ];
+
+          fields.forEach(([label, value]) => {
+            if (!value) return;
+            const p = document.createElement("p");
+            const strong = document.createElement("strong");
+            strong.textContent = label + "：";
+            p.append(strong, document.createTextNode("\n" + value));
+            article.append(p);
+          });
+
+          const deleteButton = document.createElement("button");
+          deleteButton.type = "button";
+          deleteButton.className = "delete-button";
+          deleteButton.textContent = "この記録を削除";
+
+          deleteButton.addEventListener("click", () => {
+            if (!confirm("この記録を削除しますか？")) return;
+            const previous = records;
+            records = records.filter(item => item.id !== record.id);
+            if (saveRecords()) {
+              renderRecords();
+            } else {
+              records = previous;
+            }
+          });
+
+          article.append(deleteButton);
+          list.append(article);
+        });
+    }
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+
+      const record = {
+        id: Date.now().toString() + Math.random().toString(36).slice(2),
+        date: document.getElementById("record-date").value,
+        work: document.getElementById("record-work").value.trim(),
+        result: document.getElementById("record-result").value.trim(),
+        pending: document.getElementById("record-pending").value.trim(),
+        next: document.getElementById("record-next").value.trim(),
+        report: document.getElementById("record-report").value.trim()
+      };
+
+      if (!record.date || !record.work) {
+        alert("日付と実施した業務を入力してください。");
+        return;
+      }
+
+      records.push(record);
+
+      if (saveRecords()) {
+        renderRecords();
+        form.reset();
+        document.getElementById("record-date").value =
+          new Date().toLocaleDateString("sv-SE");
+        alert("日次記録を保存しました。");
+      } else {
+        records.pop();
+      }
+    });
+
+    document.getElementById("record-date").value =
+      new Date().toLocaleDateString("sv-SE");
+
+    renderRecords();
+  </script>
+</body>
+</html>
